@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 st.markdown("""
     <style>
         body {
-            background-color: #E0FFFF;  /* สีฟ้าสดใส */
+            background-color: #F0F8FF;  /* สีฟ้าสดใส (Alice Blue) */
             font-family: 'Arial', sans-serif;
         }
         .title {
@@ -101,5 +101,3 @@ st.pyplot(plt)
 
 # ฟุตเตอร์ (footer)
 st.markdown('<p class="footer">Developed by ไอไก่วิว - © 2024</p>', unsafe_allow_html=True)
-
-

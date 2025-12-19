@@ -64,7 +64,7 @@ st.markdown("""
         .ai-title {
             font-size: 100px;
             font-weight: 1000;
-            color: #99FFFF;
+            color: #000000;
             text-align: center;
             margin-bottom: 0px;
             text-shadow: 3px 3px 10px rgba(255, 99, 71, 0.3);

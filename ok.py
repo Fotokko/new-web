@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 file_path = 'sustainable_waste_management_dataset_2024.csv' 
 
 df = pd.read_csv(file_path)
-
+st.title("Made by ไอไก่วิว")
 st.title("ระบบปริมาณทํานายขยะ")
 
 st.write("Dataset Preview:")

@@ -58,7 +58,7 @@ draw();
 # 3. ปรับแต่ง CSS สำหรับหน้าจอคำนวณของ AI วิว
 st.markdown("""
     <style>
-        .stApp { background-color: #E6E6FA; } /* พื้นหลังโหมดมืด */
+        .stApp { background-color: #98FB98; } /* พื้นหลังโหมดมืด */
         
         /* ตกแต่งส่วนหัว */
         .ai-title {
@@ -84,7 +84,7 @@ st.markdown("""
         }
         div[data-testid="stMetric"] {
             background-color: rgba(30, 41, 59, 0.7) !important;
-            border: 2px solid #FF6347 !important;
+            border: 2px solid #2E8B57 !important;
             border-radius: 15px;
             padding: 20px !important;
             backdrop-filter: blur(5px);

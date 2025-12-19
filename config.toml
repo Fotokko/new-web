@@ -1,0 +1,9 @@
+[theme]
+base="light"
+backgroundColor="red"  # เปลี่ยนพื้นหลังให้เป็นสีแดง
+secondaryBackgroundColor="lavender"
+codeBackgroundColor="powderBlue"
+
+[theme.sidebar]
+backgroundColor="ghostWhite"
+secondaryBackgroundColor="lavender"

@@ -9,33 +9,34 @@ from sklearn.metrics import mean_squared_error, r2_score
 st.markdown("""
     <style>
         body {
-            background-color: #F0F8FF;  /* สีฟ้าสดใส (Alice Blue) */
+            background-color: #FF6347;  /* สีแดงสด (Tomato) */
             font-family: 'Arial', sans-serif;
+            color: white;  /* ให้ตัวหนังสือเป็นสีขาว */
         }
         .title {
             font-size: 50px;
             font-weight: bold;
-            color: #FF6347;  /* สีส้มสด */
+            color: #FFFFFF;  /* สีขาว */
             text-align: center;
             margin-top: 30px;
         }
         .subtitle {
             font-size: 32px;
-            color: #4B0082;  /* สีม่วงเข้ม */
+            color: #FFFACD;  /* สีครีมอ่อน (Lemon Chiffon) */
             text-align: center;
             margin-top: 10px;
         }
         .header {
             font-size: 24px;
             font-weight: bold;
-            color: #FF4500;  /* สีส้มอ่อน */
+            color: #FFD700;  /* สีทอง (Gold) */
         }
         .description {
             font-size: 18px;
-            color: #4682B4;  /* สีฟ้า */
+            color: #FFFFFF;  /* สีขาว */
         }
         .container {
-            background-color: #FFFFFF;
+            background-color: #FFFFFF;  /* พื้นหลังของกล่องข้อมูลเป็นสีขาว */
             border-radius: 15px;
             padding: 20px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -60,41 +61,42 @@ st.markdown('<p class="subtitle">ระบบปริมาณทํานา�
 file_path = 'sustainable_waste_management_dataset_2024.csv' 
 df = pd.read_csv(file_path)
 
-# แสดงข้อมูล
-st.markdown('<p class="header">Dataset Preview:</p>', unsafe_allow_html=True)
-st.write(df.head())  # แสดง 5 แถวแรก
-
 # เตรียมข้อมูลสำหรับการฝึกโมเดล
 X = df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']]  
 y = df['waste_kg']
 
-# แบ่งข้อมูลเป็นชุดฝึกและทดสอบ
-from sklearn.model_selection import train_test_split
-X_train, X_test, Y_train, Y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
 # สร้างโมเดล Linear Regression
 model = LinearRegression()
-model.fit(X_train, Y_train)
+model.fit(X, y)
 
-# ทำนายข้อมูล
-Y_pred = model.predict(X_test)
+# การตั้งค่าของ Slider
+st.markdown('<p class="header">ปรับค่าปัจจัยต่างๆ และทำนายปริมาณขยะ</p>', unsafe_allow_html=True)
 
-# คำนวณ MSE และ R squared
-mse = mean_squared_error(Y_test, Y_pred)
-r2 = r2_score(Y_test, Y_pred)
+population = st.slider('เลือกจำนวนประชากร (population)', min_value=1000, max_value=50000, value=17990, step=100)
+recyclable_kg = st.slider('เลือกจำนวนขยะรีไซเคิล (recyclable_kg)', min_value=1000, max_value=10000, value=5000, step=100)
+organic_kg = st.slider('เลือกจำนวนขยะอินทรีย์ (organic_kg)', min_value=1000, max_value=10000, value=5000, step=100)
+collection_capacity_kg = st.slider('เลือกความสามารถในการเก็บขยะ (collection_capacity_kg)', min_value=1000, max_value=10000, value=5000, step=100)
+overflow = st.slider('เลือกปริมาณขยะที่ล้น (overflow)', min_value=100, max_value=2000, value=500, step=50)
+temp_c = st.slider('เลือกอุณหภูมิ (temp_c)', min_value=-10, max_value=40, value=25, step=1)
+rain_mm = st.slider('เลือกปริมาณฝน (rain_mm)', min_value=0, max_value=500, value=100, step=10)
 
-# แสดงผล
-st.markdown('<p class="description">Model Evaluation:</p>', unsafe_allow_html=True)
-st.write(f"MSE: {mse}")
-st.write(f"R squared: {r2}")
+# นำค่าที่ได้จาก Slider ไปใช้ในการทำนาย
+input_data = np.array([[population, recyclable_kg, organic_kg, collection_capacity_kg, overflow, temp_c, rain_mm]])
 
-# สร้างกราฟ
+# ทำนายผลลัพธ์
+prediction = model.predict(input_data)
+
+# แสดงผลการทำนาย
+st.markdown('<p class="description">ผลลัพธ์การทำนายขยะ:</p>', unsafe_allow_html=True)
+st.write(f"การทำนายจำนวนขยะ (waste_kg): {prediction[0]:.2f} กิโลกรัม")
+
+# สร้างกราฟแสดงผล
 plt.figure(figsize=(10, 6))
-plt.scatter(Y_test, Y_pred, alpha=0.7, color='blue')
+plt.scatter(y, model.predict(X), color='blue', label="Data points")
 plt.plot([y.min(), y.max()], [y.min(), y.max()], '--', color='red', lw=2, label='Perfect Prediction Line')
-plt.xlabel('Actual waste_kg (Y_test)')
-plt.ylabel('Predicted waste_kg (Y_pred)')
-plt.title('Predicted vs. Actual waste_kg')
+plt.xlabel('Actual waste_kg')
+plt.ylabel('Predicted waste_kg')
+plt.title('Predicted vs Actual waste_kg')
 plt.legend()
 plt.grid(True)
 st.pyplot(plt)

@@ -58,12 +58,12 @@ draw();
 # 3. ปรับแต่ง CSS สำหรับหน้าจอคำนวณของ AI วิว
 st.markdown("""
     <style>
-        .stApp { background-color: #0E1117; } /* พื้นหลังโหมดมืด */
+        .stApp { background-color: #E6E6FA; } /* พื้นหลังโหมดมืด */
         
         /* ตกแต่งส่วนหัว */
         .ai-title {
             font-size: 100px;
-            font-weight: 800;
+            font-weight: 1000;
             color: #99FFFF;
             text-align: center;
             margin-bottom: 0px;

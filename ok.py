@@ -5,34 +5,52 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-# สร้าง CSS สำหรับการตกแต่งหน้าเว็บ
+# เพิ่ม CSS สำหรับการตกแต่งพื้นหลังและองค์ประกอบต่างๆ
 st.markdown("""
     <style>
+        body {
+            background-color: #E0FFFF;  /* สีฟ้าสดใส */
+            font-family: 'Arial', sans-serif;
+        }
         .title {
-            font-size: 48px;
+            font-size: 50px;
             font-weight: bold;
-            color: #2F4F4F;
+            color: #FF6347;  /* สีส้มสด */
+            text-align: center;
+            margin-top: 30px;
         }
         .subtitle {
             font-size: 32px;
-            color: #4B0082;
-        }
-        .main-container {
-            background-color: #F5F5F5;
-            padding: 20px;
-            border-radius: 10px;
+            color: #4B0082;  /* สีม่วงเข้ม */
+            text-align: center;
+            margin-top: 10px;
         }
         .header {
             font-size: 24px;
             font-weight: bold;
-            color: #FF6347;
+            color: #FF4500;  /* สีส้มอ่อน */
         }
         .description {
             font-size: 18px;
-            color: #4682B4;
+            color: #4682B4;  /* สีฟ้า */
+        }
+        .container {
+            background-color: #FFFFFF;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        .content {
+            text-align: center;
+        }
+        .footer {
+            font-size: 14px;
+            text-align: center;
+            color: #808080;  /* สีเทาอ่อน */
         }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ชื่อหัวข้อ
 st.markdown('<p class="title">Made by ไอไก่วิว</p>', unsafe_allow_html=True)
@@ -80,4 +98,8 @@ plt.title('Predicted vs. Actual waste_kg')
 plt.legend()
 plt.grid(True)
 st.pyplot(plt)
+
+# ฟุตเตอร์ (footer)
+st.markdown('<p class="footer">Developed by ไอไก่วิว - © 2024</p>', unsafe_allow_html=True)
+
 

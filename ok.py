@@ -62,9 +62,9 @@ st.markdown("""
         
         /* ตกแต่งส่วนหัว */
         .ai-title {
-            font-size: 50px;
+            font-size: 100px;
             font-weight: 800;
-            color: #FF6347;
+            color: #99FFFF;
             text-align: center;
             margin-bottom: 0px;
             text-shadow: 3px 3px 10px rgba(255, 99, 71, 0.3);

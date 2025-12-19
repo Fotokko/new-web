@@ -4,136 +4,173 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
-# 1. ตั้งค่าหน้าเว็บให้เป็นแบบกว้าง
-st.set_page_config(page_title="Waste Prediction Pro", layout="wide")
+# 1. การตั้งค่าหน้าเว็บพื้นฐาน
+st.set_page_config(page_title="AI วิว - ระบบคำนวณขยะ", layout="wide")
 
-# 2. ปรับแต่ง CSS ให้ Metric ชัดเจนและสวยงาม
+# 2. เอฟเฟกต์ถังขยะร่วงหล่น (Trash Rain Effect) ด้วย JavaScript
+st.markdown("""
+<script>
+const canvas = window.parent.document.createElement('canvas');
+canvas.id = 'trash-rain';
+canvas.style.position = 'fixed';
+canvas.style.top = '0';
+canvas.style.left = '0';
+canvas.style.width = '100vw';
+canvas.style.height = '100vh';
+canvas.style.pointerEvents = 'none';
+canvas.style.zIndex = '0';
+window.parent.document.body.appendChild(canvas);
+
+const ctx = canvas.getContext('2d');
+canvas.width = window.parent.innerWidth;
+canvas.height = window.parent.innerHeight;
+
+const trashIcons = ['🗑️', '♻️', '📦', '🍎', '🧴', '🦴'];
+const particles = [];
+
+for (let i = 0; i < 20; i++) {
+    particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 20 + 10,
+        speed: Math.random() * 2 + 0.5,
+        text: trashIcons[Math.floor(Math.random() * trashIcons.length)]
+    });
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.font = '24px serif';
+    particles.forEach(p => {
+        ctx.fillText(p.text, p.x, p.y);
+        p.y += p.speed;
+        if (p.y > canvas.height) {
+            p.y = -30;
+            p.x = Math.random() * canvas.width;
+        }
+    });
+    requestAnimationFrame(draw);
+}
+draw();
+</script>
+""", unsafe_allow_html=True)
+
+# 3. ปรับแต่ง CSS สำหรับหน้าจอคำนวณของ AI วิว
 st.markdown("""
     <style>
-        /* ปรับแต่ง Metric Card */
-        [data-testid="stMetricValue"] {
-            color: #FFD700 !important; /* สีทอง */
-            font-size: 38px !important;
-            font-weight: bold;
-        }
-        [data-testid="stMetricLabel"] {
-            color: #FFFFFF !important;
-            font-size: 18px !important;
-        }
-        div[data-testid="stMetric"] {
-            background-color: #1E293B !important;
-            border: 2px solid #FF6347 !important;
-            border-radius: 12px;
-            padding: 15px !important;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        /* หัวข้อหลัก */
-        .main-title {
-            font-size: 45px;
+        .stApp { background-color: #0E1117; } /* พื้นหลังโหมดมืด */
+        
+        /* ตกแต่งส่วนหัว */
+        .ai-title {
+            font-size: 50px;
             font-weight: 800;
             color: #FF6347;
             text-align: center;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 0px;
+            text-shadow: 3px 3px 10px rgba(255, 99, 71, 0.3);
+        }
+        .ai-subtitle {
+            font-size: 20px;
+            color: #94A3B8;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* ตกแต่ง Metric (การ์ดแสดงตัวเลข) */
+        [data-testid="stMetricValue"] {
+            color: #FFD700 !important; /* ตัวเลขสีทอง */
+            font-size: 40px !important;
+            font-weight: bold;
+        }
+        div[data-testid="stMetric"] {
+            background-color: rgba(30, 41, 59, 0.7) !important;
+            border: 2px solid #FF6347 !important;
+            border-radius: 15px;
+            padding: 20px !important;
+            backdrop-filter: blur(5px);
         }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="main-title">🚮 Waste Prediction System (Riverside)</p>', unsafe_allow_html=True)
-st.markdown('<p style="text-align:center; color:#94A3B8;">ระบบวิเคราะห์และพยากรณ์ขยะแบบ Real-time ตามข้อมูลจริง</p>', unsafe_allow_html=True)
+# ส่วนหัวของเว็บไซต์
+st.markdown('<p class="ai-title">ระบบคำนวณขยะ โดย วิว</p>', unsafe_allow_html=True)
+st.markdown('<p class="ai-subtitle">วิเคราะห์ข้อมูลอัจฉริยะ แม่นยำ และรวดเร็ว</p>', unsafe_allow_html=True)
 
-# 3. ฟังก์ชันโหลดข้อมูลและฝึกโมเดล
+# 4. โหลดข้อมูลและสร้างโมเดล
 @st.cache_data
 def load_and_train():
     file_path = 'sustainable_waste_management_dataset_2024.csv'
     try:
         df = pd.read_csv(file_path)
-        # ระบุ Features ตาม Dataset จริง
         features = ['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']
         X = df[features]
         y = df['waste_kg']
         model = LinearRegression().fit(X, y)
         return model, df, y
-    except Exception as e:
-        return None, None, None
+    except: return None, None, None
 
 model, df, y_data = load_and_train()
 
 if model is not None:
-    # 4. Sidebar: ปรับช่วง (Range) ให้ใกล้เคียงข้อมูล Riverside จริงๆ
-    st.sidebar.header("⚙️ ปรับแต่งสถานการณ์")
+    # 5. Sidebar สำหรับควบคุม (User Friendly)
+    st.sidebar.header("🛠️ แผงควบคุม AI วิว")
     with st.sidebar:
-        st.write("---")
-        pop = st.slider('👥 ประชากร (คน)', 17000, 20000, 17950)
+        pop = st.slider('👥 จำนวนประชากร', 17000, 20000, 17950)
         recy = st.slider('♻️ ขยะรีไซเคิล (kg)', 1000, 15000, 5000)
         org = st.slider('🍎 ขยะอินทรีย์ (kg)', 5000, 20000, 8500)
         cap = st.slider('🚛 ความจุการเก็บ (kg)', 15000, 30000, 21000)
-        # ใช้ Select Slider สำหรับสถานะ 0 หรือ 1 เพื่อให้ใช้งานง่าย
-        over = st.select_slider('⚠️ ขยะล้น (0=ปกติ, 1=ล้น)', options=[0, 1], value=0)
+        over = st.select_slider('⚠️ ขยะล้น (0/1)', options=[0, 1], value=0)
         temp = st.slider('🌡️ อุณหภูมิ (°C)', 15, 40, 24)
         rain = st.slider('🌧️ ปริมาณฝน (mm)', 0, 100, 5)
 
-    # 5. คำนวณผลการทำนาย
-    input_features = np.array([[pop, recy, org, cap, over, temp, rain]])
-    prediction = model.predict(input_features)[0]
+    # 6. คำนวณผลลัพธ์
+    input_val = np.array([[pop, recy, org, cap, over, temp, rain]])
+    prediction = model.predict(input_val)[0]
 
-    # 6. แสดงผลลัพธ์ผ่าน Metrics
+    # 7. แสดงการ์ดตัวเลข
     col1, col2, col3 = st.columns(3)
-    col1.metric("ปริมาณขยะทำนาย", f"{prediction:,.2f} kg")
-    col2.metric("ประชากรเป้าหมาย", f"{pop:,} คน")
+    col1.metric("AI ทำนายขยะได้", f"{prediction:,.2f} kg")
+    col2.metric("ประชากร", f"{pop:,} คน")
     col3.metric("สภาพอากาศ", f"{temp} °C")
 
-    # 7. กราฟวิเคราะห์แบบ Dynamic Scaling (ขยับแกนตามจุด)
+    # 8. กราฟ Dynamic Scaling (ขยับแกนอัตโนมัติ)
     st.write("---")
-    st.subheader("📊 การวิเคราะห์ตำแหน่งข้อมูล (Dynamic Chart)")
+    st.subheader("📈 กราฟวิเคราะห์ตำแหน่งข้อมูลโดย AI วิว")
 
-    # คำนวณขอบเขตแกน XY ให้ครอบคลุมทุกจุดเสมอ (ไม่มีหลุดขอบ)
     history_preds = model.predict(df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']])
     
-    # หาค่า Min/Max จากทั้งข้อมูลเก่าและค่าใหม่ที่เพิ่งทำนาย
-    total_min = min(y_data.min(), prediction, history_preds.min())
-    total_max = max(y_data.max(), prediction, history_preds.max())
+    # คำนวณขอบเขตแกน XY ไม่ให้หลุดขอบ
+    all_vals = np.concatenate([y_data, history_preds, [prediction]])
+    t_min, t_max = all_vals.min(), all_vals.max()
+    margin = (t_max - t_min) * 0.15
     
-    # เผื่อพื้นที่ว่าง (Padding) 15% เพื่อความสวยงาม
-    margin = (total_max - total_min) * 0.15
-    ax_limit_min = total_min - margin
-    ax_limit_max = total_max + margin
-
-    # ตั้งค่าสไตล์กราฟ
     plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(12, 6))
-    fig.patch.set_facecolor('#0E1117') # สีพื้นหลังเดียวกับ Streamlit Dark Mode
+    fig.patch.set_facecolor('#0E1117')
     ax.set_facecolor('#1E293B')
 
-    # วาดข้อมูลประวัติศาสตร์ (Past Data)
-    ax.scatter(y_data, history_preds, alpha=0.4, color='#64748B', label='ข้อมูลในอดีต (Riverside)')
+    # ข้อมูลในอดีต
+    ax.scatter(y_data, history_preds, alpha=0.3, color='#94A3B8', label='History Data')
+    
+    # เส้นไกด์ไลน์ 45 องศา
+    ax.plot([t_min - margin, t_max + margin], [t_min - margin, t_max + margin], '--', color='white', alpha=0.1)
 
-    # วาดเส้นทแยงมุม Baseline (Perfect Prediction Line)
-    ax.plot([ax_limit_min, ax_limit_max], [ax_limit_min, ax_limit_max], '--', color='white', alpha=0.2)
-
-    # วาดจุดปัจจุบันที่ได้จาก Slider (สีส้มแดงสด ขนาดใหญ่)
-    ax.scatter(prediction, prediction, color='#FF6347', s=500, edgecolor='white', 
-               linewidth=3, label='ค่าที่คุณปรับแต่งตอนนี้', zorder=10)
-
-    # เส้นประนำสายตาชี้ไปที่แกนเลข
+    # จุดทำนายของ AI (สีแดงขนาดใหญ่)
+    ax.scatter(prediction, prediction, color='#FF6347', s=500, edgecolor='white', linewidth=3, zorder=10, label='AI Prediction')
+    
+    # เส้นประตัดแกน
     ax.axhline(prediction, color='#FF6347', linestyle=':', alpha=0.5)
     ax.axvline(prediction, color='#FF6347', linestyle=':', alpha=0.5)
 
-    # ตั้งค่า Limit แกน XY ให้ขยับตามจุดทำนายเสมอ
-    ax.set_xlim(ax_limit_min, ax_limit_max)
-    ax.set_ylim(ax_limit_min, ax_limit_max)
-
-    # ชื่อแกนและรายละเอียด
-    ax.set_xlabel('Actual Waste in History (kg)', fontsize=12, color='#94A3B8')
-    ax.set_ylabel('Predicted Waste (kg)', fontsize=12, color='#94A3B8')
-    ax.legend(facecolor='#1E293B', edgecolor='white')
-    ax.grid(True, linestyle='--', alpha=0.1)
-
+    ax.set_xlim(t_min - margin, t_max + margin)
+    ax.set_ylim(t_min - margin, t_max + margin)
+    ax.set_xlabel('Actual Value')
+    ax.set_ylabel('AI Predicted Value')
+    ax.legend()
+    
     st.pyplot(fig)
 
-    # 8. ส่วนสรุปด้านล่าง
-    st.info(f"💡 วิเคราะห์: หากมีประชากร {pop:,} คน และมีปริมาณฝน {rain} mm ระบบคาดการณ์ว่าขยะจะอยู่ที่ประมาณ {prediction:,.2f} kg")
-    st.markdown('<p style="text-align:center; color:#475569; font-size:14px; margin-top:30px;">Developed by ไอไก่วิว | © 2024 Data Science Project</p>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align:center; color:#475569;">© 2024 AI View - Smart Waste Management Solution</p>', unsafe_allow_html=True)
 
 else:
-    st.error("❌ ไม่พบไฟล์ 'sustainable_waste_management_dataset_2024.csv' กรุณาตรวจสอบตำแหน่งไฟล์")
+    st.error("ระบบขัดข้อง: ไม่พบไฟล์ข้อมูลสำหรับการประมวลผล")

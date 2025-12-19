@@ -42,9 +42,6 @@ st.markdown("""
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             margin-top: 20px;
         }
-        .content {
-            text-align: center;
-        }
         .footer {
             font-size: 14px;
             text-align: center;

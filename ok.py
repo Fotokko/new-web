@@ -2,113 +2,106 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
 
-# เพิ่ม CSS สำหรับการตกแต่งพื้นหลังและองค์ประกอบต่างๆ
+# ตั้งค่าหน้ากระดาษ
+st.set_page_config(page_title="Waste Prediction System", layout="wide")
+
+# ปรับแต่ง CSS
 st.markdown("""
     <style>
-        body {
-            background-color: #FF6347;  /* สีแดงสด (Tomato) */
-            font-family: 'Arial', sans-serif;
-            color: white;  /* ให้ตัวหนังสือเป็นสีขาว */
+        .main {
+            background-color: #f5f7f9;
         }
-        .title {
-            font-size: 50px;
-            font-weight: bold;
-            color: #FFFFFF;  /* สีขาว */
+        .stMetric {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .title-text {
+            font-size: 40px;
+            font-weight: 800;
+            color: #1E3A8A;
             text-align: center;
-            margin-top: 30px;
-        }
-        .subtitle {
-            font-size: 32px;
-            color: #FFFACD;  /* สีครีมอ่อน (Lemon Chiffon) */
-            text-align: center;
-            margin-top: 10px;
-        }
-        .header {
-            font-size: 24px;
-            font-weight: bold;
-            color: #FFD700;  /* สีทอง (Gold) */
-        }
-        .description {
-            font-size: 18px;
-            color: #FFFFFF;  /* สีขาว */
-        }
-        .container {
-            background-color: #FFFFFF;  /* พื้นหลังของกล่องข้อมูลเป็นสีขาว */
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            margin-top: 20px;
-        }
-        .content {
-            text-align: center;
-        }
-        .footer {
-            font-size: 14px;
-            text-align: center;
-            color: #808080;  /* สีเทาอ่อน */
-        }
-        .slider {
-            margin-top: 20px;
-        }
-        .call-to-action {
-            font-size: 18px;
-            font-weight: bold;
-            color: #32CD32;  /* สีเขียว */
-            text-align: center;
+            margin-bottom: 20px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# ชื่อหัวข้อ
-st.markdown('<p class="title">Made by ไอไก่วิว</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">ระบบปริมาณทํานายขยะ</p>', unsafe_allow_html=True)
+# --- ส่วนของการเตรียมข้อมูล (Data Preparation) ---
+@st.cache_data # ใช้ cache เพื่อให้โหลดข้อมูลครั้งเดียว
+def load_data():
+    file_path = 'sustainable_waste_management_dataset_2024.csv'
+    df = pd.read_csv(file_path)
+    return df
 
-# ข้อมูลตัวอย่าง
-file_path = 'sustainable_waste_management_dataset_2024.csv' 
-df = pd.read_csv(file_path)
+try:
+    df = load_data()
+    X = df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']]
+    y = df['waste_kg']
 
-# เตรียมข้อมูลสำหรับการฝึกโมเดล
-X = df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']]  
-y = df['waste_kg']
+    # สร้างและฝึกโมเดล
+    model = LinearRegression()
+    model.fit(X, y)
 
-# สร้างโมเดล Linear Regression
-model = LinearRegression()
-model.fit(X, y)
+    # --- ส่วนของ Sidebar (Input) ---
+    st.sidebar.header("📊 ตั้งค่าปัจจัยการทำนาย")
+    st.sidebar.markdown("ปรับค่าด้านล่างเพื่อดูผลลัพธ์แบบ Real-time")
+    
+    with st.sidebar:
+        population = st.slider('จำนวนประชากร', 1000, 50000, 17990)
+        recyclable_kg = st.slider('ขยะรีไซเคิล (kg)', 1000, 10000, 5000)
+        organic_kg = st.slider('ขยะอินทรีย์ (kg)', 1000, 10000, 5000)
+        collection_cap = st.slider('ความสามารถในการเก็บ (kg)', 1000, 10000, 5000)
+        overflow = st.slider('ปริมาณขยะล้น (kg)', 100, 2000, 500)
+        temp_c = st.slider('อุณหภูมิ (°C)', -10, 40, 25)
+        rain_mm = st.slider('ปริมาณฝน (mm)', 0, 500, 100)
 
-# การตั้งค่าของ Slider
-st.markdown('<p class="header">ปรับค่าปัจจัยต่างๆ และทำนายปริมาณขยะ</p>', unsafe_allow_html=True)
+    # --- ส่วนหน้าจอหลัก (Main Display) ---
+    st.markdown('<p class="title-text">ระบบพยากรณ์ปริมาณขยะอัจฉริยะ</p>', unsafe_allow_html=True)
+    
+    # คำนวณผลการทำนาย
+    input_data = np.array([[population, recyclable_kg, organic_kg, collection_cap, overflow, temp_c, rain_mm]])
+    prediction = model.predict(input_data)[0]
 
-population = st.slider('เลือกจำนวนประชากร (population)', min_value=1000, max_value=50000, value=17990, step=100)
-recyclable_kg = st.slider('เลือกจำนวนขยะรีไซเคิล (recyclable_kg)', min_value=1000, max_value=10000, value=5000, step=100)
-organic_kg = st.slider('เลือกจำนวนขยะอินทรีย์ (organic_kg)', min_value=1000, max_value=10000, value=5000, step=100)
-collection_capacity_kg = st.slider('เลือกความสามารถในการเก็บขยะ (collection_capacity_kg)', min_value=1000, max_value=10000, value=5000, step=100)
-overflow = st.slider('เลือกปริมาณขยะที่ล้น (overflow)', min_value=100, max_value=2000, value=500, step=50)
-temp_c = st.slider('เลือกอุณหภูมิ (temp_c)', min_value=-10, max_value=40, value=25, step=1)
-rain_mm = st.slider('เลือกปริมาณฝน (rain_mm)', min_value=0, max_value=500, value=100, step=10)
+    # แสดงผลลัพธ์แบบ Metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(label="ปริมาณขยะที่คาดการณ์", value=f"{prediction:,.2f} kg")
+    with col2:
+        st.metric(label="ประชากรเป้าหมาย", value=f"{population:,.0f} คน")
+    with col3:
+        st.metric(label="ขยะรีไซเคิล", value=f"{recyclable_kg:,.0f} kg")
 
-# นำค่าที่ได้จาก Slider ไปใช้ในการทำนาย
-input_data = np.array([[population, recyclable_kg, organic_kg, collection_capacity_kg, overflow, temp_c, rain_mm]])
+    st.write("---")
 
-# ทำนายผลลัพธ์
-prediction = model.predict(input_data)
+    # --- ส่วนของกราฟ (Visualization) ---
+    col_left, col_right = st.columns([1, 1])
 
-# แสดงผลการทำนาย
-st.markdown('<p class="call-to-action">ผลลัพธ์การทำนายขยะ:</p>', unsafe_allow_html=True)
-st.write(f"การทำนายจำนวนขยะ (waste_kg): {prediction[0]:.2f} กิโลกรัม")
+    with col_left:
+        st.subheader("📈 กราฟเปรียบเทียบผลการทำนาย")
+        fig, ax = plt.subplots(figsize=(10, 7))
+        sns.regplot(x=y, y=model.predict(X), scatter_kws={'alpha':0.3, 'color':'#3498db'}, line_kws={'color':'#e74c3c'}, ax=ax)
+        # จุดแดงแสดงตำแหน่งปัจจุบันที่เลือกจาก Slider
+        ax.scatter(prediction, prediction, color='yellow', s=200, edgecolors='black', label='Current Prediction', zorder=5)
+        ax.set_xlabel('Actual Waste (kg)')
+        ax.set_ylabel('Predicted Waste (kg)')
+        ax.legend()
+        st.pyplot(fig)
 
-# สร้างกราฟแสดงผล
-plt.figure(figsize=(10, 6))
-plt.scatter(y, model.predict(X), color='blue', label="Data points")
-plt.plot([y.min(), y.max()], [y.min(), y.max()], '--', color='red', lw=2, label='Perfect Prediction Line')
-plt.xlabel('Actual waste_kg')
-plt.ylabel('Predicted waste_kg')
-plt.title('Predicted vs Actual waste_kg')
-plt.legend()
-plt.grid(True)
-st.pyplot(plt)
+    with col_right:
+        st.subheader("📋 ข้อมูลปัจจุบัน")
+        # แสดงตารางข้อมูลเปรียบเทียบค่าที่ Input เข้าไป
+        input_df = pd.DataFrame({
+            'ปัจจัย': ['ประชากร', 'รีไซเคิล', 'ขยะอินทรีย์', 'ความจุการเก็บ', 'ขยะล้น', 'อุณหภูมิ', 'ฝน'],
+            'ค่าที่เลือก': [population, recyclable_kg, organic_kg, collection_cap, overflow, temp_c, rain_mm]
+        })
+        st.table(input_df)
 
-# ฟุตเตอร์ (footer)
-st.markdown('<p class="footer">Developed by ไอไก่วิว - © 2024</p>', unsafe_allow_html=True)
+    st.markdown('<p style="text-align:center; color:gray; padding-top:50px;">Developed by ไอไก่วิว - © 2024 | Data Driven Insights</p>', unsafe_allow_html=True)
+
+except Exception as e:
+    st.error(f"ไม่สามารถโหลดไฟล์ข้อมูลได้: {e}")
+    st.info("กรุณาตรวจสอบว่าไฟล์ 'sustainable_waste_management_dataset_2024.csv' อยู่ในโฟลเดอร์เดียวกับโค้ด")

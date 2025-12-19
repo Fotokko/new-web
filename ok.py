@@ -4,113 +4,136 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
-# 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="Waste Prediction", layout="wide")
+# 1. ตั้งค่าหน้าเว็บให้เป็นแบบกว้าง
+st.set_page_config(page_title="Waste Prediction Pro", layout="wide")
 
-# 2. ปรับแต่ง CSS สำหรับโหมดมืด (Dark Mode) ให้ชัดเจน
+# 2. ปรับแต่ง CSS ให้ Metric ชัดเจนและสวยงาม
 st.markdown("""
     <style>
-        [data-testid="stMetricValue"] { color: #FFD700 !important; font-size: 35px !important; }
-        [data-testid="stMetricLabel"] { color: #FFFFFF !important; font-size: 18px !important; }
+        /* ปรับแต่ง Metric Card */
+        [data-testid="stMetricValue"] {
+            color: #FFD700 !important; /* สีทอง */
+            font-size: 38px !important;
+            font-weight: bold;
+        }
+        [data-testid="stMetricLabel"] {
+            color: #FFFFFF !important;
+            font-size: 18px !important;
+        }
         div[data-testid="stMetric"] {
             background-color: #1E293B !important;
             border: 2px solid #FF6347 !important;
-            border-radius: 10px;
-            padding: 10px !important;
+            border-radius: 12px;
+            padding: 15px !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        .title-text {
-            font-size: 36px;
-            font-weight: bold;
+        /* หัวข้อหลัก */
+        .main-title {
+            font-size: 45px;
+            font-weight: 800;
             color: #FF6347;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
     </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<p class="title-text">🚮 ระบบพยากรณ์ปริมาณขยะตามข้อมูลจริง</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">🚮 Waste Prediction System (Riverside)</p>', unsafe_allow_html=True)
+st.markdown('<p style="text-align:center; color:#94A3B8;">ระบบวิเคราะห์และพยากรณ์ขยะแบบ Real-time ตามข้อมูลจริง</p>', unsafe_allow_html=True)
 
-# 3. โหลดข้อมูล (จากตัวอย่างที่คุณส่งมา)
+# 3. ฟังก์ชันโหลดข้อมูลและฝึกโมเดล
 @st.cache_data
-def load_data():
+def load_and_train():
     file_path = 'sustainable_waste_management_dataset_2024.csv'
     try:
         df = pd.read_csv(file_path)
-        # ใช้เฉพาะ Feature ที่สำคัญตาม Dataset
+        # ระบุ Features ตาม Dataset จริง
         features = ['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']
         X = df[features]
         y = df['waste_kg']
         model = LinearRegression().fit(X, y)
         return model, df, y
-    except: return None, None, None
+    except Exception as e:
+        return None, None, None
 
-model, df, y_data = load_data()
+model, df, y_data = load_and_train()
 
 if model is not None:
-    # 4. Sidebar ปรับ Range ให้ใกล้เคียง Dataset จริง
-    st.sidebar.header("⚙️ ปรับค่าตามสถานการณ์จริง")
+    # 4. Sidebar: ปรับช่วง (Range) ให้ใกล้เคียงข้อมูล Riverside จริงๆ
+    st.sidebar.header("⚙️ ปรับแต่งสถานการณ์")
     with st.sidebar:
-        # อ้างอิงจากข้อมูล: ประชากรประมาณ 17,900
-        pop = st.slider('👥 จำนวนประชากร', 17000, 20000, 17950)
-        # ขยะรีไซเคิล: ประมาณ 2,600 - 7,000
-        recy = st.slider('♻️ ขยะรีไซเคิล (kg)', 1000, 10000, 5000)
-        # ขยะอินทรีย์: ประมาณ 6,000 - 11,000
-        org = st.slider('🍎 ขยะอินทรีย์ (kg)', 5000, 15000, 8500)
-        # ความจุการจัดเก็บ: ประมาณ 18,000 - 22,000
-        cap = st.slider('🚛 ความจุการเก็บ (kg)', 15000, 25000, 21000)
-        # ขยะล้น: 0 หรือ 1 ตาม Dataset
-        over = st.select_slider('⚠️ สถานะขยะล้น (0=ปกติ, 1=ล้น)', options=[0, 1], value=0)
-        # อุณหภูมิ: ประมาณ 22 - 26 องศา
-        temp = st.slider('🌡️ อุณหภูมิ (°C)', 20, 35, 24)
-        # ปริมาณฝน: ประมาณ 0 - 20 มม.
-        rain = st.slider('🌧️ ปริมาณฝน (mm)', 0, 50, 5)
+        st.write("---")
+        pop = st.slider('👥 ประชากร (คน)', 17000, 20000, 17950)
+        recy = st.slider('♻️ ขยะรีไซเคิล (kg)', 1000, 15000, 5000)
+        org = st.slider('🍎 ขยะอินทรีย์ (kg)', 5000, 20000, 8500)
+        cap = st.slider('🚛 ความจุการเก็บ (kg)', 15000, 30000, 21000)
+        # ใช้ Select Slider สำหรับสถานะ 0 หรือ 1 เพื่อให้ใช้งานง่าย
+        over = st.select_slider('⚠️ ขยะล้น (0=ปกติ, 1=ล้น)', options=[0, 1], value=0)
+        temp = st.slider('🌡️ อุณหภูมิ (°C)', 15, 40, 24)
+        rain = st.slider('🌧️ ปริมาณฝน (mm)', 0, 100, 5)
 
-    # 5. คำนวณผลลัพธ์
-    input_val = np.array([[pop, recy, org, cap, over, temp, rain]])
-    prediction = model.predict(input_val)[0]
+    # 5. คำนวณผลการทำนาย
+    input_features = np.array([[pop, recy, org, cap, over, temp, rain]])
+    prediction = model.predict(input_features)[0]
 
-    # 6. แสดงผล Metrics
-    c1, c2, c3 = st.columns(3)
-    c1.metric("ทำนายขยะรวม", f"{prediction:,.2f} kg")
-    c2.metric("ประชากรในพื้นที่", f"{pop:,} คน")
-    c3.metric("อุณหภูมิวันนี้", f"{temp} °C")
+    # 6. แสดงผลลัพธ์ผ่าน Metrics
+    col1, col2, col3 = st.columns(3)
+    col1.metric("ปริมาณขยะทำนาย", f"{prediction:,.2f} kg")
+    col2.metric("ประชากรเป้าหมาย", f"{pop:,} คน")
+    col3.metric("สภาพอากาศ", f"{temp} °C")
 
-    # 7. กราฟ (Dynamic Scale ที่แคบลงเพื่อให้เห็นความต่างชัดขึ้น)
+    # 7. กราฟวิเคราะห์แบบ Dynamic Scaling (ขยับแกนตามจุด)
     st.write("---")
-    st.subheader("📊 การเปรียบเทียบกับข้อมูลในฐานข้อมูล")
+    st.subheader("📊 การวิเคราะห์ตำแหน่งข้อมูล (Dynamic Chart)")
+
+    # คำนวณขอบเขตแกน XY ให้ครอบคลุมทุกจุดเสมอ (ไม่มีหลุดขอบ)
+    history_preds = model.predict(df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']])
     
-    # กำหนดขอบเขตขวานขวานให้พอดีกับข้อมูลจริง (ประมาณ 15k - 25k)
-    min_chart = 15000
-    max_chart = 25000
+    # หาค่า Min/Max จากทั้งข้อมูลเก่าและค่าใหม่ที่เพิ่งทำนาย
+    total_min = min(y_data.min(), prediction, history_preds.min())
+    total_max = max(y_data.max(), prediction, history_preds.max())
     
+    # เผื่อพื้นที่ว่าง (Padding) 15% เพื่อความสวยงาม
+    margin = (total_max - total_min) * 0.15
+    ax_limit_min = total_min - margin
+    ax_limit_max = total_max + margin
+
+    # ตั้งค่าสไตล์กราฟ
     plt.style.use('dark_background')
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax = plt.subplots(figsize=(12, 6))
+    fig.patch.set_facecolor('#0E1117') # สีพื้นหลังเดียวกับ Streamlit Dark Mode
+    ax.set_facecolor('#1E293B')
 
-    # ข้อมูลเดิมจาก Dataset
-    ax.scatter(y_data, model.predict(df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']]), 
-               alpha=0.5, color='#475569', label='History Data (Riverside)')
+    # วาดข้อมูลประวัติศาสตร์ (Past Data)
+    ax.scatter(y_data, history_preds, alpha=0.4, color='#64748B', label='ข้อมูลในอดีต (Riverside)')
 
-    # เส้นแบ่ง Trend
-    ax.plot([min_chart, max_chart], [min_chart, max_chart], '--', color='white', alpha=0.3)
+    # วาดเส้นทแยงมุม Baseline (Perfect Prediction Line)
+    ax.plot([ax_limit_min, ax_limit_max], [ax_limit_min, ax_limit_max], '--', color='white', alpha=0.2)
 
-    # จุดที่ผู้ใช้เลือก (สีแดง)
-    ax.scatter(prediction, prediction, color='#FF6347', s=400, edgecolor='white', 
-               linewidth=3, label='Your Setting', zorder=10)
+    # วาดจุดปัจจุบันที่ได้จาก Slider (สีส้มแดงสด ขนาดใหญ่)
+    ax.scatter(prediction, prediction, color='#FF6347', s=500, edgecolor='white', 
+               linewidth=3, label='ค่าที่คุณปรับแต่งตอนนี้', zorder=10)
 
-    # เส้นประนำสายตา
-    ax.axhline(prediction, color='#FF6347', linestyle=':', alpha=0.6)
-    ax.axvline(prediction, color='#FF6347', linestyle=':', alpha=0.6)
+    # เส้นประนำสายตาชี้ไปที่แกนเลข
+    ax.axhline(prediction, color='#FF6347', linestyle=':', alpha=0.5)
+    ax.axvline(prediction, color='#FF6347', linestyle=':', alpha=0.5)
 
-    ax.set_xlim(min_chart, max_chart)
-    ax.set_ylim(min_chart, max_chart)
-    ax.set_xlabel('Actual Waste in Dataset (kg)')
-    ax.set_ylabel('Predicted Waste (kg)')
-    ax.legend()
-    ax.grid(True, alpha=0.1)
+    # ตั้งค่า Limit แกน XY ให้ขยับตามจุดทำนายเสมอ
+    ax.set_xlim(ax_limit_min, ax_limit_max)
+    ax.set_ylim(ax_limit_min, ax_limit_max)
+
+    # ชื่อแกนและรายละเอียด
+    ax.set_xlabel('Actual Waste in History (kg)', fontsize=12, color='#94A3B8')
+    ax.set_ylabel('Predicted Waste (kg)', fontsize=12, color='#94A3B8')
+    ax.legend(facecolor='#1E293B', edgecolor='white')
+    ax.grid(True, linestyle='--', alpha=0.1)
 
     st.pyplot(fig)
-    
-    st.markdown('<p style="text-align:center; color:gray;">ระบบปรับแต่งช่วงข้อมูล (Range) ให้อัตโนมัติตามสถิติ Riverside Area</p>', unsafe_allow_html=True)
+
+    # 8. ส่วนสรุปด้านล่าง
+    st.info(f"💡 วิเคราะห์: หากมีประชากร {pop:,} คน และมีปริมาณฝน {rain} mm ระบบคาดการณ์ว่าขยะจะอยู่ที่ประมาณ {prediction:,.2f} kg")
+    st.markdown('<p style="text-align:center; color:#475569; font-size:14px; margin-top:30px;">Developed by ไอไก่วิว | © 2024 Data Science Project</p>', unsafe_allow_html=True)
 
 else:
-    st.error("กรุณาอัปโหลดไฟล์ dataset เพื่อเริ่มใช้งาน")
+    st.error("❌ ไม่พบไฟล์ 'sustainable_waste_management_dataset_2024.csv' กรุณาตรวจสอบตำแหน่งไฟล์")

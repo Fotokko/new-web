@@ -42,10 +42,22 @@ st.markdown("""
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             margin-top: 20px;
         }
+        .content {
+            text-align: center;
+        }
         .footer {
             font-size: 14px;
             text-align: center;
             color: #808080;  /* สีเทาอ่อน */
+        }
+        .slider {
+            margin-top: 20px;
+        }
+        .call-to-action {
+            font-size: 18px;
+            font-weight: bold;
+            color: #32CD32;  /* สีเขียว */
+            text-align: center;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -84,7 +96,7 @@ input_data = np.array([[population, recyclable_kg, organic_kg, collection_capaci
 prediction = model.predict(input_data)
 
 # แสดงผลการทำนาย
-st.markdown('<p class="description">ผลลัพธ์การทำนายขยะ:</p>', unsafe_allow_html=True)
+st.markdown('<p class="call-to-action">ผลลัพธ์การทำนายขยะ:</p>', unsafe_allow_html=True)
 st.write(f"การทำนายจำนวนขยะ (waste_kg): {prediction[0]:.2f} กิโลกรัม")
 
 # สร้างกราฟแสดงผล

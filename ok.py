@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
-# 1. การตั้งค่าหน้าเว็บพื้นฐาน
+# 1. การตั้งค่าหน้าเว็บ
 st.set_page_config(page_title="AI วิว - ระบบคำนวณขยะ", layout="wide")
 
-# 2. เอฟเฟกต์ถังขยะร่วงหล่น (Trash Rain Effect) ด้วย JavaScript
+# 2. เอฟเฟกต์ถังขยะร่วงหล่น (Trash Rain Effect)
 st.markdown("""
 <script>
 const canvas = window.parent.document.createElement('canvas');
@@ -20,14 +20,11 @@ canvas.style.height = '100vh';
 canvas.style.pointerEvents = 'none';
 canvas.style.zIndex = '0';
 window.parent.document.body.appendChild(canvas);
-
 const ctx = canvas.getContext('2d');
 canvas.width = window.parent.innerWidth;
 canvas.height = window.parent.innerHeight;
-
 const trashIcons = ['🗑️', '♻️', '📦', '🍎', '🧴', '🦴'];
 const particles = [];
-
 for (let i = 0; i < 20; i++) {
     particles.push({
         x: Math.random() * canvas.width,
@@ -37,7 +34,6 @@ for (let i = 0; i < 20; i++) {
         text: trashIcons[Math.floor(Math.random() * trashIcons.length)]
     });
 }
-
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = '24px serif';
@@ -55,30 +51,37 @@ draw();
 </script>
 """, unsafe_allow_html=True)
 
-# 3. ปรับแต่ง CSS สำหรับหน้าจอคำนวณของ AI วิว
+# 3. ปรับแต่ง CSS (ขยาย Title ให้ใหญ่ขึ้นมาก)
 st.markdown("""
     <style>
-        .stApp { background-color: #E6E6FA; } /* พื้นหลังโหมดมืด */
+        .stApp { background-color: #0E1117; }
         
-        /* ตกแต่งส่วนหัว */
+        /* แก้ไขตรงนี้: ขยายขนาด Title และเพิ่ม Effect */
         .ai-title {
-            font-size: 100px;
-            font-weight: 1000;
-            color: #99FFFF;
+            font-size: 80px; /* ขนาดใหญ่พิเศษ */
+            font-weight: 900;
+            color: #FF6347;
             text-align: center;
+            margin-top: -20px;
             margin-bottom: 0px;
-            text-shadow: 3px 3px 10px rgba(255, 99, 71, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: -webkit-linear-gradient(#FF6347, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(255, 99, 71, 0.5));
         }
+        
         .ai-subtitle {
-            font-size: 20px;
+            font-size: 26px; /* ขยาย Subtitle ด้วย */
             color: #94A3B8;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            font-style: italic;
         }
 
-        /* ตกแต่ง Metric (การ์ดแสดงตัวเลข) */
         [data-testid="stMetricValue"] {
-            color: #FFD700 !important; /* ตัวเลขสีทอง */
+            color: #FFD700 !important;
             font-size: 40px !important;
             font-weight: bold;
         }
@@ -92,11 +95,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ส่วนหัวของเว็บไซต์
-st.markdown('<p class="ai-title">ระบบคำนวณขยะ โดย วิว</p>', unsafe_allow_html=True)
-st.markdown('<p class="ai-subtitle">วิเคราะห์ข้อมูลอัจฉริยะ แม่นยำ และรวดเร็ว</p>', unsafe_allow_html=True)
+# ส่วนหัวของเว็บไซต์ (Title ที่ใหญ่ขึ้น)
+st.markdown('<p class="ai-title">🤖 AI วิว</p>', unsafe_allow_html=True)
+st.markdown('<p class="ai-subtitle">ระบบพยากรณ์ปริมาณขยะอัจฉริยะ</p>', unsafe_allow_html=True)
 
-# 4. โหลดข้อมูลและสร้างโมเดล
+# 4. โหลดข้อมูลและสร้างโมเดล (ใช้ข้อมูลจากไฟล์ CSV ของคุณ)
 @st.cache_data
 def load_and_train():
     file_path = 'sustainable_waste_management_dataset_2024.csv'
@@ -112,7 +115,7 @@ def load_and_train():
 model, df, y_data = load_and_train()
 
 if model is not None:
-    # 5. Sidebar สำหรับควบคุม (User Friendly)
+    # 5. Sidebar
     st.sidebar.header("🛠️ แผงควบคุม AI วิว")
     with st.sidebar:
         pop = st.slider('👥 จำนวนประชากร', 17000, 20000, 17950)
@@ -123,23 +126,21 @@ if model is not None:
         temp = st.slider('🌡️ อุณหภูมิ (°C)', 15, 40, 24)
         rain = st.slider('🌧️ ปริมาณฝน (mm)', 0, 100, 5)
 
-    # 6. คำนวณผลลัพธ์
+    # 6. คำนวณ
     input_val = np.array([[pop, recy, org, cap, over, temp, rain]])
     prediction = model.predict(input_val)[0]
 
-    # 7. แสดงการ์ดตัวเลข
+    # 7. Metrics
     col1, col2, col3 = st.columns(3)
-    col1.metric("AI ทำนายขยะได้", f"{prediction:,.2f} kg")
-    col2.metric("ประชากร", f"{pop:,} คน")
-    col3.metric("สภาพอากาศ", f"{temp} °C")
+    col1.metric("AI คาดการณ์ขยะ", f"{prediction:,.2f} kg")
+    col2.metric("ประชากรในพื้นที่", f"{pop:,} คน")
+    col3.metric("อุณหภูมิเฉลี่ย", f"{temp} °C")
 
-    # 8. กราฟ Dynamic Scaling (ขยับแกนอัตโนมัติ)
+    # 8. กราฟ Dynamic Scaling
     st.write("---")
-    st.subheader("📈 กราฟวิเคราะห์ตำแหน่งข้อมูลโดย AI วิว")
+    st.subheader("📈 วิเคราะห์แนวโน้มข้อมูล")
 
     history_preds = model.predict(df[['population', 'recyclable_kg', 'organic_kg', 'collection_capacity_kg', 'overflow', 'temp_c', 'rain_mm']])
-    
-    # คำนวณขอบเขตแกน XY ไม่ให้หลุดขอบ
     all_vals = np.concatenate([y_data, history_preds, [prediction]])
     t_min, t_max = all_vals.min(), all_vals.max()
     margin = (t_max - t_min) * 0.15
@@ -148,29 +149,18 @@ if model is not None:
     fig, ax = plt.subplots(figsize=(12, 6))
     fig.patch.set_facecolor('#0E1117')
     ax.set_facecolor('#1E293B')
-
-    # ข้อมูลในอดีต
-    ax.scatter(y_data, history_preds, alpha=0.3, color='#94A3B8', label='History Data')
-    
-    # เส้นไกด์ไลน์ 45 องศา
+    ax.scatter(y_data, history_preds, alpha=0.3, color='#94A3B8', label='ประวัติข้อมูล')
     ax.plot([t_min - margin, t_max + margin], [t_min - margin, t_max + margin], '--', color='white', alpha=0.1)
-
-    # จุดทำนายของ AI (สีแดงขนาดใหญ่)
-    ax.scatter(prediction, prediction, color='#FF6347', s=500, edgecolor='white', linewidth=3, zorder=10, label='AI Prediction')
-    
-    # เส้นประตัดแกน
+    ax.scatter(prediction, prediction, color='#FF6347', s=500, edgecolor='white', linewidth=3, zorder=10, label='จุดที่ AI ทำนาย')
     ax.axhline(prediction, color='#FF6347', linestyle=':', alpha=0.5)
     ax.axvline(prediction, color='#FF6347', linestyle=':', alpha=0.5)
-
     ax.set_xlim(t_min - margin, t_max + margin)
     ax.set_ylim(t_min - margin, t_max + margin)
     ax.set_xlabel('Actual Value')
     ax.set_ylabel('AI Predicted Value')
     ax.legend()
-    
     st.pyplot(fig)
 
-    st.markdown('<p style="text-align:center; color:#475569;">© 2024 AI View - Smart Waste Management Solution</p>', unsafe_allow_html=True)
-
+    st.markdown('<p style="text-align:center; color:#475569; margin-top:50px;">© 2024 AI วิว - Smart Waste Prediction</p>', unsafe_allow_html=True)
 else:
-    st.error("ระบบขัดข้อง: ไม่พบไฟล์ข้อมูลสำหรับการประมวลผล")
+    st.error("ไม่พบข้อมูล CSV")
